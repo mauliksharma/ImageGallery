@@ -18,10 +18,21 @@ class GalleryCollectionViewCell: UICollectionViewCell {
     
     var imageURL: URL? {
         didSet {
+            imageView?.image = nil
             fetchImage()
         }
     }
     
+    var image: UIImage? {
+        get {
+            return imageView.image
+        }
+        set {
+            imageView?.image = newValue
+            activityIndicator?.stopAnimating()
+            activityIndicator?.alpha = 0
+        }
+    }
     
     func fetchImage() {
         activityIndicator?.alpha = 1
@@ -32,8 +43,7 @@ class GalleryCollectionViewCell: UICollectionViewCell {
                 let urlContents = try? Data(contentsOf: url)
                 DispatchQueue.main.async {
                     if let imageData = urlContents, url == self?.imageURL {
-                        self?.imageView?.image = UIImage(data: imageData)
-                        self?.activityIndicator?.stopAnimating()
+                        self?.image = UIImage(data: imageData)
                     }
                 }
             }

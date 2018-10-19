@@ -95,6 +95,10 @@ extension UIImage
 {
     private static let localImagesDirectory = "UIImage.storeLocallyAsJPEG"
     
+    var aspectRatio: CGFloat {
+        return (self.size.width / self.size.height)
+    }
+    
     static func urlToStoreLocallyAsJPEG(named: String) -> URL? {
         var name = named
         let pathComponents = named.components(separatedBy: "/")
