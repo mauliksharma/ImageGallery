@@ -8,15 +8,10 @@
 
 import UIKit
 
-private let reuseIdentifier = "Cell"
-
-class GalleryCollectionViewController: UICollectionViewController, UICollectionViewDragDelegate, UICollectionViewDropDelegate {
+class GalleryCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDropDelegate {
     
-    
-    
-    var links = [URL]()
-    var aspectRatios = [Float]()
-
+    var images = [Image]()
+    var scaleFactor: CGFloat = 1.0
     /*
     // MARK: - Navigation
 
@@ -29,34 +24,32 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
 
     // MARK: UICollectionViewDataSource
 
-    override func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 1
-    }
-
-
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return links.count
+        return images.count
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath)
         if let imageCell = cell as? GalleryCollectionViewCell {
-            imageCell.imageLink = links[indexPath.item]
+            imageCell.imageURL = images[indexPath.item].url
         }
         return cell
     }
     
-    // MARK: UICollectionViewDragDelegate
-    
-    func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
-        //CODE HERE! Remove next line
-        return []
+    // MARK: - UICollectionViewDelegateFlowLayout
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = CGFloat(300)
+        return CGSize(width: width, height: width / CGFloat(images[indexPath.item].aspectRatio))
     }
+    
+    // MARK: - UICollectionViewDragDelegate
+    
+    
     
     // MARK: UICollectionViewDropDelegate
     
     func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool {
-        return session.canLoadObjects(ofClass: NSURL.self) && session.canLoadObjects(ofClass: UIImage.self)
+        return session.canLoadObjects(ofClass: URL.self) && session.canLoadObjects(ofClass: UIImage.self)
     }
     
     func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal {
@@ -66,26 +59,29 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
         let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(row: 0, section: 0)
         for item in coordinator.items {
-//            let placeHolderContext = coordinator.drop(item.dragItem, to: UICollectionViewDropPlaceholder(insertionIndexPath: destinationIndexPath, reuseIdentifier: "PlaceholderCell"))
-
+            let placeholderContext = coordinator.drop(item.dragItem,
+                                                      to: UICollectionViewDropPlaceholder(insertionIndexPath: destinationIndexPath, reuseIdentifier: "PlaceholderCell"))
+            var newImage = Image()
+            
             item.dragItem.itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
                 DispatchQueue.main.async {
-                    if let image = (provider as? UIImage) {
-                        let ratio = image.size.width / image.size.height
-                        self.aspectRatios.append(Float(ratio))
+                    if let image = provider as? UIImage {
+                        newImage.aspectRatio = image.size.width / image.size.height
                     }
                 }
             }
             item.dragItem.itemProvider.loadObject(ofClass: NSURL.self) { (provider, error) in
                 DispatchQueue.main.async {
-                    if let link = provider as? URL {
-                        self.links.append(link.imageURL)
-                        print(self.links)
-                        print(self.aspectRatios)
+                    if let url = provider as? URL {
+                        newImage.url = url.imageURL
+                        placeholderContext.commitInsertion(dataSourceUpdates: { (insertionIndexPath) in
+                            self.images.insert(newImage, at: insertionIndexPath.item)
+                        })
+                    } else {
+                        placeholderContext.deletePlaceholder()
                     }
                 }
             }
-            
         }
     }
     
@@ -122,8 +118,13 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
         override func viewDidLoad() {
             super.viewDidLoad()
-            collectionView?.dragDelegate = self
+//            collectionView?.dragDelegate = self
             collectionView?.dropDelegate = self
         }
 
+}
+
+struct Image {
+    var aspectRatio = CGFloat(1.0)
+    var url = URL(string: "")
 }

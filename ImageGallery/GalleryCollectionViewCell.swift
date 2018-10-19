@@ -10,35 +10,33 @@ import UIKit
 
 class GalleryCollectionViewCell: UICollectionViewCell {
     
+    
     @IBOutlet weak var imageView: UIImageView!
     
-    var imageLink: URL? {
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    
+    
+    var imageURL: URL? {
         didSet {
             fetchImage()
         }
     }
     
-    var imageData: UIImage? {
-        get {
-            return imageView.image
-        }
-        set {
-            imageView.image = newValue
-            imageView.sizeToFit()
-        }
-    }
     
     func fetchImage() {
-        if let url = imageLink{
+        activityIndicator?.alpha = 1
+        activityIndicator?.startAnimating()
+        
+        if let url = imageURL{
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 let urlContents = try? Data(contentsOf: url)
                 DispatchQueue.main.async {
-                    if let imageData = urlContents, url == self?.imageLink {
-                        self?.imageData = UIImage(data: imageData)
+                    if let imageData = urlContents, url == self?.imageURL {
+                        self?.imageView?.image = UIImage(data: imageData)
+                        self?.activityIndicator?.stopAnimating()
                     }
                 }
             }
         }
     }
-    
 }
