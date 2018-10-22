@@ -43,7 +43,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = CGFloat(300)
+        let width = min(scaleFactor * CGFloat(300), collectionView.bounds.width - CGFloat(60))
         return CGSize(width: width, height: width / infoForImages[indexPath.item].aspectRatio)
     }
     
@@ -59,10 +59,10 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     }
     
     func dragItems(at indexPath: IndexPath) -> [UIDragItem] {
-        if let galleryCell = (collectionView.cellForItem(at: indexPath) as? GalleryCollectionViewCell) {
+        if let galleryCell = collectionView.cellForItem(at: indexPath) as? GalleryCollectionViewCell {
             if let imageData = galleryCell.image {
                 let dragItem = UIDragItem(itemProvider: NSItemProvider(object: imageData))
-                dragItem.localObject = imageData
+//                dragItem.localObject = imageData
                 return [dragItem]
             }
         }
@@ -97,7 +97,6 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
                 let placeholderContext = coordinator.drop(item.dragItem,
                                                           to: UICollectionViewDropPlaceholder(insertionIndexPath: destinationIndexPath, reuseIdentifier: "PlaceholderCell"))
                 var newImage = ImageInfo()
-                
                 item.dragItem.itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
                     DispatchQueue.main.async {
                         if let image = provider as? UIImage {
