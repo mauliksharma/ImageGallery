@@ -12,15 +12,6 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     var infoForImages = [ImageInfo]()
     var scaleFactor: CGFloat = 1.0
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using [segue destinationViewController].
-     // Pass the selected object to the new view controller.
-     }
-     */
     
     // MARK: UICollectionViewDataSource
     
@@ -120,6 +111,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         }
     }
     
+    
     // MARK: UICollectionViewDelegate
     
     /*
@@ -150,6 +142,19 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
      
      }
      */
+    
+    // MARK: - Navigation
+    
+    // In a storyboard-based application, you will often want to do a little preparation before navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showFullView" {
+            if let galleryCVC = sender as? GalleryCollectionViewCell, let fullVC = segue.destination as? ImageFullViewController {
+                if let image = galleryCVC.image {
+                    fullVC.image = image
+                }
+            }
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()

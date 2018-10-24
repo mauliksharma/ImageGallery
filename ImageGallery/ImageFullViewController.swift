@@ -10,17 +10,35 @@ import UIKit
 
 class ImageFullViewController: UIViewController, UIScrollViewDelegate {
     
-    @IBOutlet weak var scrollView: UIScrollView!
-    
-    var image = UIImage()
+    var image = UIImage() {
+        didSet {
+            imageView.image = image
+            imageView.contentMode = .scaleAspectFit
+        }
+    }
     
     var imageView = UIImageView()
-
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+    
+    @IBOutlet weak var scrollView: UIScrollView! {
+        didSet {
+            scrollView.delegate = self
+            scrollView.addSubview(imageView)
+            scrollView.contentSize = imageView.frame.size
+            scrollView.minimumZoomScale = 1.0
+            scrollView.maximumZoomScale = 5.0
+        }
     }
-
+    
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return imageView
+    }
+    
+    override func viewDidLayoutSubviews() {
+        let currentScale = scrollView.zoomScale
+        scrollView.setZoomScale(1, animated: false)
+        imageView.frame = scrollView.bounds
+        scrollView.contentSize = imageView.frame.size
+        scrollView.setZoomScale(currentScale, animated: false)
+    }
+    
 }

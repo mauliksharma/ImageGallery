@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E3A3E90E217D917D00AC9213 /* ImageFullViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A3E90D217D917D00AC9213 /* ImageFullViewController.swift */; };
 		E3E139732176E28000197F3C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E139722176E28000197F3C /* AppDelegate.swift */; };
 		E3E139782176E28000197F3C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E3E139762176E28000197F3C /* Main.storyboard */; };
 		E3E1397A2176E28000197F3C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E3E139792176E28000197F3C /* Assets.xcassets */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E3A3E90D217D917D00AC9213 /* ImageFullViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageFullViewController.swift; sourceTree = "<group>"; };
 		E3E1396F2176E28000197F3C /* ImageGallery.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageGallery.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E3E139722176E28000197F3C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E3E139772176E28000197F3C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -65,6 +67,7 @@
 				E3F820BE21784D52004E2880 /* GalleryDocumentTableViewController.swift */,
 				E3F820CA2178D915004E2880 /* GalleryCollectionViewController.swift */,
 				E3F820CC21790B83004E2880 /* GalleryCollectionViewCell.swift */,
+				E3A3E90D217D917D00AC9213 /* ImageFullViewController.swift */,
 				E3F820C42178578C004E2880 /* Utilities.swift */,
 				E3E139792176E28000197F3C /* Assets.xcassets */,
 				E3E1397B2176E28000197F3C /* LaunchScreen.storyboard */,
@@ -147,6 +150,7 @@
 				E3F820CB2178D915004E2880 /* GalleryCollectionViewController.swift in Sources */,
 				E3F820CD21790B83004E2880 /* GalleryCollectionViewCell.swift in Sources */,
 				E3F820BF21784D52004E2880 /* GalleryDocumentTableViewController.swift in Sources */,
+				E3A3E90E217D917D00AC9213 /* ImageFullViewController.swift in Sources */,
 				E3E139732176E28000197F3C /* AppDelegate.swift in Sources */,
 				E3F820C52178578C004E2880 /* Utilities.swift in Sources */,
 			);
