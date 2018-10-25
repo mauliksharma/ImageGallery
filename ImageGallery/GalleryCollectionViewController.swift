@@ -33,8 +33,12 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         return collectionView?.collectionViewLayout as? UICollectionViewFlowLayout
     }
     
+    var itemWidth: CGFloat {
+        return collectionView.bounds.width - 50
+    }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = min(scaleFactor * CGFloat(300), collectionView.bounds.width - CGFloat(60))
+        let width = min(scaleFactor * itemWidth, itemWidth)
         return CGSize(width: width, height: width / infoForImages[indexPath.item].aspectRatio)
     }
     
