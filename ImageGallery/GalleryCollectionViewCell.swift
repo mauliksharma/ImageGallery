@@ -50,7 +50,7 @@ class GalleryCollectionViewCell: UICollectionViewCell {
                             self?.image = image
                         }
                         else {
-                            self?.image = UIImage(named: "error.jpg")
+                            self?.image = UIImage(named: "error.png")
                             self?.imageError = true
                         }
                     }

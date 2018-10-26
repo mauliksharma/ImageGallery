@@ -10,7 +10,7 @@ import Foundation
 
 struct ImageGallery: Codable {
     
-    var infoForImages = [ImageInfo]()
+    var infoForImages: [ImageInfo]
     
     struct ImageInfo: Codable {
         var aspectRatio = Float(1.0)
@@ -30,8 +30,7 @@ struct ImageGallery: Codable {
         }
     }
     
-    init(infoForImages: [ImageInfo]) {
-        self.infoForImages = infoForImages
+    init() {
+        self.infoForImages = []
     }
-    
 }

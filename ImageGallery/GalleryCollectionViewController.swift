@@ -10,23 +10,33 @@ import UIKit
 
 class GalleryCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDragDelegate, UICollectionViewDropDelegate {
     
-    var imageGallery: ImageGallery?
+    var imageGallery = ImageGallery()
     
-    var infoForImages = [ImageGallery.ImageInfo]()
-    
-    var scaleFactor: CGFloat = 1.0
+    var galleryName: String? {
+        didSet {
+            if let url = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true).appendingPathComponent(galleryName! + ".json") {
+                if let data = try? Data(contentsOf: url, options: []) {
+                    if let gallery = ImageGallery(json: data) {
+                        imageGallery = gallery
+                        let jsonString = String(data: data, encoding: .utf8)!
+                        print(jsonString)
+                    }
+                }
+            }
+        }
+    }
     
     // MARK: UICollectionViewDataSource
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return infoForImages.count + 1
+        return imageGallery.infoForImages.count + 1
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if infoForImages.indices.contains(indexPath.item) {
+        if imageGallery.infoForImages.indices.contains(indexPath.item) {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath)
             if let imageCell = cell as? GalleryCollectionViewCell {
-                imageCell.imageURL = infoForImages[indexPath.item].url
+                imageCell.imageURL = imageGallery.infoForImages[indexPath.item].url
             }
             return cell
         }
@@ -39,6 +49,8 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     // MARK: - UICollectionViewDelegateFlowLayout
     
+    var scaleFactor: CGFloat = 1.0
+    
     var flowLayout: UICollectionViewFlowLayout? {
         return collectionView?.collectionViewLayout as? UICollectionViewFlowLayout
     }
@@ -48,9 +60,9 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        if infoForImages.indices.contains(indexPath.item) {
+        if imageGallery.infoForImages.indices.contains(indexPath.item) {
             let width = scaleFactor * itemWidth
-            return CGSize(width: width, height: width / CGFloat(infoForImages[indexPath.item].aspectRatio))
+            return CGSize(width: width, height: width / CGFloat(imageGallery.infoForImages[indexPath.item].aspectRatio))
         }
         return CGSize(width: itemWidth, height: 0)
     }
@@ -89,12 +101,12 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     }
     
     func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
-        let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(item: infoForImages.count, section: 0)
+        let destinationIndexPath = coordinator.destinationIndexPath ?? IndexPath(item: imageGallery.infoForImages.count, section: 0)
         for item in coordinator.items {
             if let sourceIndexPath = item.sourceIndexPath {
                 collectionView.performBatchUpdates({
-                    let imageInfo = infoForImages.remove(at: sourceIndexPath.item)
-                    infoForImages.insert(imageInfo, at: destinationIndexPath.item)
+                    let imageInfo = imageGallery.infoForImages.remove(at: sourceIndexPath.item)
+                    imageGallery.infoForImages.insert(imageInfo, at: destinationIndexPath.item)
                     collectionView.moveItem(at: sourceIndexPath, to: destinationIndexPath)
                 })
                 coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
@@ -115,7 +127,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
                         if let url = provider as? URL {
                             newImage.url = url.imageURL
                             placeholderContext.commitInsertion(dataSourceUpdates: { (insertionIndexPath) in
-                                self.infoForImages.insert(newImage, at: insertionIndexPath.item)
+                                self.imageGallery.infoForImages.insert(newImage, at: insertionIndexPath.item)
                             })
                         } else {
                             placeholderContext.deletePlaceholder()
@@ -131,7 +143,7 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
         if identifier == "showFullView" {
             if let galleryCVC = sender as? GalleryCollectionViewCell {
-                return !galleryCVC.imageError
+                return (galleryCVC.image != nil) && !galleryCVC.imageError
             }
         }
         return false
@@ -139,8 +151,8 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showFullView" {
-            if let galleryCVC = sender as? GalleryCollectionViewCell, let fullVC = segue.destination as? ImageFullViewController {
-                if let image = galleryCVC.image {
+            if let galleryCVCell = sender as? GalleryCollectionViewCell, let fullVC = segue.destination as? ImageFullViewController {
+                if let image = galleryCVCell.image {
                     fullVC.image = image
                 }
             }
@@ -165,6 +177,26 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
             return
         }
     }
+    
+    @IBAction func saveGallery(_ sender: UIBarButtonItem) {
+        if let json = imageGallery.json{
+            if let url = try? FileManager.default.url(
+                for: .documentDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true).appendingPathComponent(galleryName! + ".json") {
+                do {
+                    try json.write(to: url)
+                    print("Successfully saved")
+                    let jsonString = String(data: json, encoding: .utf8)!
+                    print(jsonString)
+                } catch let error {
+                    print("Could not save \(error)")
+                }
+            }
+        }
+    }
+    
     
 }
 

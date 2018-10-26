@@ -98,14 +98,17 @@ class GalleryDocumentTableViewController: UITableViewController {
         }
     }
 
-    /*
     // MARK: - Navigation
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+        if segue.identifier == "showGallery" {
+            if let galleryDocumentTVCell = sender as? UITableViewCell,
+                let galleryCVC = (segue.destination as? UINavigationController)?.visibleViewController as? GalleryCollectionViewController {
+                if let title = galleryDocumentTVCell.textLabel?.text {
+                    galleryCVC.galleryName = title
+                }
+            }
+        }
     }
-    */
 
 }
