@@ -19,6 +19,7 @@ class GalleryCollectionViewCell: UICollectionViewCell {
     var imageURL: URL? {
         didSet {
             imageView?.image = nil
+            imageError = false
             fetchImage()
         }
     }
@@ -34,6 +35,8 @@ class GalleryCollectionViewCell: UICollectionViewCell {
         }
     }
     
+    var imageError = false
+    
     func fetchImage() {
         activityIndicator?.alpha = 1
         activityIndicator?.startAnimating()
@@ -43,7 +46,13 @@ class GalleryCollectionViewCell: UICollectionViewCell {
                 let urlContents = try? Data(contentsOf: url)
                 DispatchQueue.main.async {
                     if let imageData = urlContents, url == self?.imageURL {
-                        self?.image = UIImage(data: imageData)
+                        if let image = UIImage(data: imageData) {
+                            self?.image = image
+                        }
+                        else {
+                            self?.image = UIImage(named: "error.jpg")
+                            self?.imageError = true
+                        }
                     }
                 }
             }

@@ -23,7 +23,6 @@ class ImageFullViewController: UIViewController, UIScrollViewDelegate {
         didSet {
             scrollView.delegate = self
             scrollView.addSubview(imageView)
-            scrollView.contentSize = imageView.frame.size
             scrollView.minimumZoomScale = 1.0
             scrollView.maximumZoomScale = 5.0
         }

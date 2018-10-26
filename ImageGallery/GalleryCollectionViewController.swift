@@ -10,21 +10,31 @@ import UIKit
 
 class GalleryCollectionViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDragDelegate, UICollectionViewDropDelegate {
     
-    var infoForImages = [ImageInfo]()
+    var imageGallery: ImageGallery?
+    
+    var infoForImages = [ImageGallery.ImageInfo]()
+    
     var scaleFactor: CGFloat = 1.0
     
     // MARK: UICollectionViewDataSource
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return infoForImages.count
+        return infoForImages.count + 1
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath)
-        if let imageCell = cell as? GalleryCollectionViewCell {
-            imageCell.imageURL = infoForImages[indexPath.item].url
+        if infoForImages.indices.contains(indexPath.item) {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath)
+            if let imageCell = cell as? GalleryCollectionViewCell {
+                imageCell.imageURL = infoForImages[indexPath.item].url
+            }
+            return cell
         }
-        return cell
+        else {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PlaceholderCell", for: indexPath)
+            return cell
+        }
+        
     }
     
     // MARK: - UICollectionViewDelegateFlowLayout
@@ -38,8 +48,11 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = min(scaleFactor * itemWidth, itemWidth)
-        return CGSize(width: width, height: width / infoForImages[indexPath.item].aspectRatio)
+        if infoForImages.indices.contains(indexPath.item) {
+            let width = scaleFactor * itemWidth
+            return CGSize(width: width, height: width / CGFloat(infoForImages[indexPath.item].aspectRatio))
+        }
+        return CGSize(width: itemWidth, height: 0)
     }
     
     // MARK: - UICollectionViewDragDelegate
@@ -57,7 +70,6 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         if let galleryCell = collectionView.cellForItem(at: indexPath) as? GalleryCollectionViewCell {
             if let imageData = galleryCell.image {
                 let dragItem = UIDragItem(itemProvider: NSItemProvider(object: imageData))
-//                dragItem.localObject = imageData
                 return [dragItem]
             }
         }
@@ -65,7 +77,6 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     }
     
     // MARK: UICollectionViewDropDelegate
-    
     
     func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool {
         let isSelf = (session.localDragSession?.localContext as? UICollectionView) == collectionView
@@ -89,16 +100,16 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
                 coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
             }
             else {
-                let placeholderContext = coordinator.drop(item.dragItem,
-                                                          to: UICollectionViewDropPlaceholder(insertionIndexPath: destinationIndexPath, reuseIdentifier: "PlaceholderCell"))
-                var newImage = ImageInfo()
+                var newImage = ImageGallery.ImageInfo()
                 item.dragItem.itemProvider.loadObject(ofClass: UIImage.self) { (provider, error) in
                     DispatchQueue.main.async {
                         if let image = provider as? UIImage {
-                            newImage.aspectRatio = image.aspectRatio
+                            newImage.aspectRatio = Float(image.aspectRatio)
                         }
                     }
                 }
+                let placeholderContext = coordinator.drop(item.dragItem,
+                                                          to: UICollectionViewDropPlaceholder(insertionIndexPath: destinationIndexPath, reuseIdentifier: "PlaceholderCell"))
                 item.dragItem.itemProvider.loadObject(ofClass: NSURL.self) { (provider, error) in
                     DispatchQueue.main.async {
                         if let url = provider as? URL {
@@ -115,41 +126,17 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
         }
     }
     
-    
-    // MARK: UICollectionViewDelegate
-    
-    /*
-     // Uncomment this method to specify if the specified item should be highlighted during tracking
-     override func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
-     return true
-     }
-     */
-    
-    /*
-     // Uncomment this method to specify if the specified item should be selected
-     override func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
-     return true
-     }
-     */
-    
-    /*
-     // Uncomment these methods to specify if an action menu should be displayed for the specified item, and react to actions performed on the item
-     override func collectionView(_ collectionView: UICollectionView, shouldShowMenuForItemAt indexPath: IndexPath) -> Bool {
-     return false
-     }
-     
-     override func collectionView(_ collectionView: UICollectionView, canPerformAction action: Selector, forItemAt indexPath: IndexPath, withSender sender: Any?) -> Bool {
-     return false
-     }
-     
-     override func collectionView(_ collectionView: UICollectionView, performAction action: Selector, forItemAt indexPath: IndexPath, withSender sender: Any?) {
-     
-     }
-     */
-    
     // MARK: - Navigation
     
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
+    override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
+        if identifier == "showFullView" {
+            if let galleryCVC = sender as? GalleryCollectionViewCell {
+                return !galleryCVC.imageError
+            }
+        }
+        return false
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showFullView" {
             if let galleryCVC = sender as? GalleryCollectionViewCell, let fullVC = segue.destination as? ImageFullViewController {
@@ -162,14 +149,23 @@ class GalleryCollectionViewController: UICollectionViewController, UICollectionV
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        collectionView?.dragDelegate = self
-        collectionView?.dropDelegate = self
-//        collectionView.addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(scaleCollectionViewCells(with:))))
+        collectionView.dragDelegate = self
+        collectionView.dropDelegate = self
+        flowLayout?.minimumInteritemSpacing = 10
+        collectionView.addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(changeScale(_:))))
+    }
+    
+    @objc func changeScale(_ recognizer: UIPinchGestureRecognizer) {
+        switch recognizer.state {
+        case .changed:
+            scaleFactor = max(min(scaleFactor * recognizer.scale, 1.0), 0.2)
+            flowLayout?.invalidateLayout()
+            recognizer.scale = 1
+        default:
+            return
+        }
     }
     
 }
 
-struct ImageInfo {
-    var aspectRatio = CGFloat(1.0)
-    var url = URL(string: "")
-}
+
